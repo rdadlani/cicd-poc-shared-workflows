@@ -39,7 +39,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         repository: galileo-inc/cicd-poc-task-definitions
-        path: ./.aws/task-definition.json
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
@@ -53,7 +52,7 @@ jobs:
       id: render-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ inputs.task-definition }}
+        task-definition: task-definitions/task-definition.json
         container-name: ${{ secrets.container-name }}
         image: ${{ inputs.image }}
 
