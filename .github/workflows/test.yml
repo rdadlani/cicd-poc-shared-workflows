@@ -1,0 +1,21 @@
+name: Run Tests
+
+on: workflow_call
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps: 
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Test
+      run: |
+        pip install pytest
+        pip install --no-cache-dir -r requirements.txt
+        pytest
+
+#note: this is a shared file, we can make more shared file examples 
+# of the main repo invoking the workflow can have one in itself to reference 

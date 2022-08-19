@@ -1,0 +1,67 @@
+name: Reusable workflow to deploy image to ECS
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        description: "ECR image"
+        required: true
+        type: string
+      task-definition:
+        description: "Location of the task-definition.json file"
+        required: true
+        type: string
+    secrets:
+      role-to-assume: 
+        description: "role to assume for oicd"
+        required: true
+      ecs-service: 
+        description: "name of the ecs service"
+        required: true
+      ecs-cluster: 
+        description: "name of the ecs cluster"
+        required: true
+      container-name: 
+        description: "name of the container"
+        required: true
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+
+    steps: 
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        audience: sandbox
+        role-to-assume: ${{ secrets.role-to-assume}}
+        aws-region: ${{ env.AWS_REGION }}
+        mask-aws-account-id: no
+
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: render-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ inputs.task-definition }}
+        container-name: ${{ secrets.container-name }}
+        image: ${{ inputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      id: deploy-task-def
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+        service: ${{ secrets.ecs-service }}
+        cluster: ${{ secrets.ecs-cluster }}
+        wait-for-service-stability: true

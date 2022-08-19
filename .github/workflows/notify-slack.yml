@@ -1,0 +1,51 @@
+name: Reusable workflow to notify slack 
+
+on:
+  workflow_call:
+    secrets:
+      slack-bot-token:
+        description: "Slack token"
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  SLACK_BOT_TOKEN: ${{ secrets.slack-bot-token }}
+
+jobs:
+  check-token:
+    name: Check if Slack token is set
+    runs-on: ubuntu-latest
+    outputs:
+      slack-token: ${{ steps.slack-token.outputs.defined }}
+    steps:
+      - id: slack-token
+        if: "${{ env.SLACK_BOT_TOKEN != '' }}"
+        run: echo "::set-output name=defined::true"
+
+  notify:
+    name: Slack Notify  
+    runs-on: ubuntu-latest
+    needs: check-token
+    # Note: this is so that a red X does not show up when the token is not set
+    #       it will just skip the notify piece but at this point into the various
+    #       workflow steps the deployment already completed
+    if: ${{ needs.check-token.outputs.slack-token == 'true' }}
+    steps: 
+    # Note: These actually don't tell us if the *real* deployment was successful, just that
+    #       the task definition was sent to AWS and the ECS service was updated
+    - name: Slack notification (Success)
+      if: ${{ success() }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: alerts-platform-test
+        status: Deployment Successful
+        color: good
+    - name: Slack notification (Failure)
+      if: ${{ failure() }}
+      uses: voxmedia/github-action-slack-notify-build@v1
+      with:
+        channel: alerts-platform-test
+        status: Deployment Failed
+        color: danger   

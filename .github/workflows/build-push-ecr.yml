@@ -1,0 +1,82 @@
+name: Reusable workflow to build and push images to ECR
+on:
+  workflow_call:
+    secrets:
+      role-to-assume: 
+        description: "role to assume for oicd"
+        required: true
+    inputs:
+      #Note: this is for an out of band staging deploy
+      git-sha:
+        description: "sha for out of band deploy"
+        required: false
+        type: string
+
+    outputs:
+      image:
+        description: "Image pushed to ECR"
+        value: ${{ jobs.build.outputs.image }}
+
+env:
+  AWS_REGION: us-east-1
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    name: Build  
+    runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+
+    steps: 
+    - name: Find Correct SHA
+      #Note: this is so that an out of band staging deploy gets the right commit sha without having to have a bunch of 
+      # workflows with the same yaml in them
+      id: sha-picker
+      run: |
+        if [[ -z "${{ inputs.git-sha }}" ]]
+        then
+          echo "::set-output name=git-sha::${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}"
+        else
+          echo "::set-output name=git-sha::${{ inputs.git-sha }}"
+        fi
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ steps.sha-picker.outputs.git-sha }}
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.role-to-assume }}
+        audience: sandbox
+        aws-region: ${{ env.AWS_REGION }}
+        mask-aws-account-id: no
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Get Repository Name
+      run: echo "REPOSITORY=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+    
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        # Build a docker image and
+        # push it to ECR so that it can
+        # be deployed to ECS.
+        docker build -t $ECR_REGISTRY/$REPOSITORY:${{ steps.sha-picker.outputs.git-sha }} .
+        docker push $ECR_REGISTRY/$REPOSITORY:${{ steps.sha-picker.outputs.git-sha }}
+        echo "::set-output name=image::$ECR_REGISTRY/$REPOSITORY:${{ steps.sha-picker.outputs.git-sha }}"
+
+
+
+
