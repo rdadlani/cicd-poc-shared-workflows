@@ -20,6 +20,9 @@ on:
       container-name: 
         description: "name of the container"
         required: true
+      github-clone-pat:
+        description: "pat to be able to clone task def repo"
+        require: true
 
 env:
   AWS_REGION: us-east-1
@@ -34,11 +37,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-    
     - name: Checkout Task Definition Repository
       uses: actions/checkout@v3
       with:
         repository: galileo-inc/cicd-poc-task-definitions
+        uses: ${{ secrets.github-clone-pat }}
         ref: v0
 
     - name: Configure AWS credentials
