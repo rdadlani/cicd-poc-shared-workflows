@@ -22,7 +22,7 @@ on:
         required: true
       github-clone-pat:
         description: "pat to be able to clone task def repo"
-        require: true
+        required: true
 
 env:
   AWS_REGION: us-east-1
