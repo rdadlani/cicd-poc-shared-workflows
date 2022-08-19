@@ -7,10 +7,6 @@ on:
         description: "ECR image"
         required: true
         type: string
-      task-definition:
-        description: "Location of the task-definition.json file"
-        required: true
-        type: string
     secrets:
       role-to-assume: 
         description: "role to assume for oicd"
@@ -38,8 +34,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps: 
-    - name: Checkout
+    
+    - name: Checkout Task Definition Repository
       uses: actions/checkout@v3
+      with:
+        repository: galileo-inc/cicd-poc-task-definitions
+        path: ./.aws/task-definition.json
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
