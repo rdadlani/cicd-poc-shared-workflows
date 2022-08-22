@@ -4,24 +4,24 @@ on:
   workflow_call:
     inputs:
       image:
-        description: "ECR image"
+        description: "Full URI of the image currently residing in ECR"
         required: true
         type: string
     secrets:
       role-to-assume: 
-        description: "role to assume for oicd"
+        description: "Role to assume for GitHub OICD"
         required: true
       ecs-service: 
-        description: "name of the ecs service"
+        description: "Name of the ECS Service"
         required: true
       ecs-cluster: 
-        description: "name of the ecs cluster"
+        description: "Name of the ECS Cluster"
         required: true
       container-name: 
-        description: "name of the container"
+        description: "Name of the container"
         required: true
       github-clone-pat:
-        description: "pat to be able to clone task def repo"
+        description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
         required: true
 
 env:
