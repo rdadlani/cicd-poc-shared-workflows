@@ -3,12 +3,12 @@ on:
   workflow_call:
     secrets:
       role-to-assume: 
-        description: "role to assume for oicd"
+        description: "Role to assume for GitHub OICD"
         required: true
     inputs:
       #Note: this is for an out of band staging deploy
       git-sha:
-        description: "sha for out of band deploy"
+        description: "Optional GitHub SHA for an out of band staging deploy passed in by the workflow runner"
         required: false
         type: string
 
@@ -35,7 +35,7 @@ jobs:
     steps: 
     - name: Find Correct SHA
       #Note: this is so that an out of band staging deploy gets the right commit sha without having to have a bunch of 
-      # workflows with the same yaml in them
+      #      workflows with the same yaml in them
       id: sha-picker
       run: |
         if [[ -z "${{ inputs.git-sha }}" ]]
