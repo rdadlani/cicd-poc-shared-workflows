@@ -14,12 +14,6 @@ on:
       ecs-service: 
         description: "Name of the ECS Service"
         required: true
-      ecs-cluster: 
-        description: "Name of the ECS Cluster"
-        required: true
-      container-name: 
-        description: "Name of the container"
-        required: true
       github-clone-pat:
         description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
         required: true
@@ -51,13 +45,24 @@ jobs:
         role-to-assume: ${{ secrets.role-to-assume}}
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
+    
+    - uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
+      with:
+        ssm-path: /cicdpoc/CONTAINER_NAME
+        prefix: SSM_VAR_
+
+    - uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
+      with:
+        ssm-path: /cicdpoc/ECS_CLUSTER
+        prefix: SSM_VAR_
 
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: render-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definitions/task-definition.json
-        container-name: ${{ secrets.container-name }}
+        container-name: ${{ env.SSM_VAR_CONTAINER_NAME }}
+
         image: ${{ inputs.image }}
 
     - name: Deploy Amazon ECS task definition
@@ -66,5 +71,5 @@ jobs:
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}
         service: ${{ secrets.ecs-service }}
-        cluster: ${{ secrets.ecs-cluster }}
+        cluster: ${{ env.SSM_VAR_ECS_CLUSTER }}
         wait-for-service-stability: true
