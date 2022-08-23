@@ -46,12 +46,14 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
     
-    - uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
+    - name: Fetch container name from SSM
+      uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
       with:
         ssm-path: /cicdpoc/CONTAINER_NAME
         prefix: SSM_VAR_
 
-    - uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
+    - name: Fetch ECS cluster name from SSM
+      uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
       with:
         ssm-path: /cicdpoc/ECS_CLUSTER
         prefix: SSM_VAR_
