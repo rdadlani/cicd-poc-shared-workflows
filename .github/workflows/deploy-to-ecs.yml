@@ -10,9 +10,11 @@ on:
       ecs-cluster: 
         description: "Name of the ECS Cluster"
         required: true
+        type: string
       container-name: 
         description: "Name of the container"
         required: true
+        type: string
     secrets:
       role-to-assume: 
         description: "Role to assume for GitHub OICD"
