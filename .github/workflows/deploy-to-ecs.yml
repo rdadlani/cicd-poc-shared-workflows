@@ -14,6 +14,9 @@ on:
       ecs-service: 
         description: "Name of the ECS Service"
         required: true
+      ecs-service-two: 
+        description: "Name of the ECS Service"
+        required: false
       ecs-cluster: 
         description: "Name of the ECS Cluster"
         required: true
@@ -68,3 +71,24 @@ jobs:
         service: ${{ secrets.ecs-service }}
         cluster: ${{ secrets.ecs-cluster }}
         wait-for-service-stability: true
+    
+    #Note: second service (we could abstract this some more, but i wont for the moment)
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      if: ${{ secrets.ecs-service-two != ''}}
+      id: render-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definitions/task-definition-two.json
+        container-name: ${{ secrets.container-name }}
+        image: ${{ inputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      if: ${{ secrets.ecs-service-two != ''}}
+      id: deploy-task-def
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+        service: ${{ secrets.ecs-service-two }}
+        cluster: ${{ secrets.ecs-cluster }}
+        wait-for-service-stability: true
+    
