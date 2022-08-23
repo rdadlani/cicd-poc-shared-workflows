@@ -77,9 +77,9 @@ jobs:
         cluster: ${{ env.SSM_VAR_ECS_CLUSTER }}
         wait-for-service-stability: true
     
+    if: ${{ secrets.ecs-service-two != ''}}
     #Note: second service (we could abstract this some more, but i wont for the moment)
     - name: Fill in the new image ID in the Amazon ECS task definition
-      if: ${{ secrets.ecs-service-two != ''}}
       id: render-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
@@ -88,7 +88,6 @@ jobs:
         image: ${{ inputs.image }}
 
     - name: Deploy Amazon ECS task definition
-      if: ${{ secrets.ecs-service-two != ''}}
       id: deploy-task-def
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
