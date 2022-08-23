@@ -83,7 +83,7 @@ jobs:
     - name: Check for second service
       id: second-service-check
       run: |
-        if [[ -z "${{ secrets.ecs-service-two }}" ]]
+        if [[ "${{ secrets.ecs-service-two }}" != "" ]]
         then
           echo "::set-output name=second_service::true"
         else
@@ -96,7 +96,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: deploy
 
-    if: ${{ needs.deploy.outputs.second_service == 'true' }}
+    if: needs.deploy.outputs.second_service == 'true'
     steps: 
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: render-task-def-two
