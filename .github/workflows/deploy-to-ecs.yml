@@ -118,7 +118,7 @@ jobs:
     
   #Note: second service (we could abstract this some more, but i wont for the moment)
   deploy-two:
-    name: Deploy to ECS 2
+    name: Deploy second ECS service
     runs-on: ubuntu-latest
     needs: [prepare_ssm_params, deploy]
 
