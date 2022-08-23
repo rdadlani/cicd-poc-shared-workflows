@@ -14,12 +14,6 @@ on:
       ecs-service: 
         description: "Name of the ECS Service"
         required: true
-      ecs-cluster: 
-        description: "Name of the ECS Cluster"
-        required: true
-      container-name: 
-        description: "Name of the container"
-        required: true
       github-clone-pat:
         description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
         required: true
