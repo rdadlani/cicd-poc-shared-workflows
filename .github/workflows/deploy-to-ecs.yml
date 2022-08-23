@@ -33,6 +33,9 @@ jobs:
     name: Deploy to ECS
     runs-on: ubuntu-latest
 
+    outputs:
+      second_service: ${{ steps.second-service-check.outputs.second_service }}
+
     steps: 
     - name: Checkout Task Definition Repository
       uses: actions/checkout@v3
@@ -77,10 +80,21 @@ jobs:
         cluster: ${{ env.SSM_VAR_ECS_CLUSTER }}
         wait-for-service-stability: true
     
-    if: ${{ secrets.ecs-service-two != ''}}
+    - name: Check for second service
+      id: second-service-check
+      run: |
+        if [[ -z "${{ secrets.ecs-service-two }}" ]]
+        then
+          echo "::set-output name=second_service::true"
+        else
+          echo "::set-output name=second_service::false"
+        fi
+    
     #Note: second service (we could abstract this some more, but i wont for the moment)
     - name: Fill in the new image ID in the Amazon ECS task definition
-      id: render-task-def
+      needs: [second-service-check]
+      id: render-task-def-two
+      if: needs.second-service-check.outputs.second_service == 'true'
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definitions/task-definition-two.json
@@ -88,7 +102,9 @@ jobs:
         image: ${{ inputs.image }}
 
     - name: Deploy Amazon ECS task definition
-      id: deploy-task-def
+      needs: [render-task-def-two]
+      id: deploy-task-def-two
+      if: needs.second-service-check.outputs.second_service == 'true'
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}
