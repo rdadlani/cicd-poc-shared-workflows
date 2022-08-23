@@ -59,7 +59,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definitions/task-definition.json
-        container-name: ${{ secrets.container-name }}
+        container-name: ${{ inputs.container-name }}
         image: ${{ inputs.image }}
 
     - name: Deploy Amazon ECS task definition
@@ -68,5 +68,5 @@ jobs:
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}
         service: ${{ secrets.ecs-service }}
-        cluster: ${{ secrets.ecs-cluster }}
+        cluster: ${{ inputs.ecs-cluster }}
         wait-for-service-stability: true
