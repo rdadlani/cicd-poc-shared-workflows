@@ -124,6 +124,13 @@ jobs:
 
     if: needs.deploy.outputs.second_service == 'true'
     steps: 
+    - name: Checkout Task Definition Repository
+      uses: actions/checkout@v3
+      with:
+        repository: galileo-inc/cicd-poc-task-definitions
+        token: ${{ secrets.github-clone-pat }}
+        ref: v0
+  
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: render-task-def-two
       uses: aws-actions/amazon-ecs-render-task-definition@v1
