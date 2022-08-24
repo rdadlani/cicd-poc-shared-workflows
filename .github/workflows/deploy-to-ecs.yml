@@ -151,7 +151,7 @@ jobs:
       id: deploy-task-def-two
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+        task-definition: ${{ steps.render-task-def-two.outputs.task-definition }}
         service: ${{ secrets.ecs-service-two }}
         cluster: ${{ needs.prepare_ssm_params.outputs.ecs-cluster }}
         wait-for-service-stability: true
