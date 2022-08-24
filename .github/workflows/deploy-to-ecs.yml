@@ -130,6 +130,14 @@ jobs:
         repository: galileo-inc/cicd-poc-task-definitions
         token: ${{ secrets.github-clone-pat }}
         ref: v0
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        audience: sandbox
+        role-to-assume: ${{ secrets.role-to-assume }}
+        aws-region: ${{ env.AWS_REGION }}
+        mask-aws-account-id: no
   
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: render-task-def-two
