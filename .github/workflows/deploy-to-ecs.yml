@@ -14,6 +14,9 @@ on:
       ecs-service: 
         description: "Name of the ECS Service"
         required: true
+      ecs-service-two: 
+        description: "Name of the ECS Service"
+        required: false
       github-clone-pat:
         description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
         required: true
@@ -26,9 +29,48 @@ permissions:
   id-token: write
 
 jobs:
+  prepare_ssm_params:
+    name: Prepare environment variables and outputs
+    runs-on: ubuntu-latest
+
+    outputs: 
+      ecs-cluster: ${{ steps.ssm-params.outputs.ecs-cluster }}
+      container-name: ${{ steps.ssm-params.outputs.container-name }}
+
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.role-to-assume }} 
+        audience: sandbox
+        aws-region: ${{ env.AWS_REGION }}
+        mask-aws-account-id: no
+
+    - name: Fetch ECS cluster name from SSM
+      uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
+      with:
+        ssm-path: /cicdpoc/ECS_CLUSTER
+        prefix: SSM_
+
+    - name: Fetch ECS container name from SSM
+      uses: Bardavon-Health/actions-aws-ssm-params-to-env@v1.2
+      with:
+        ssm-path: /cicdpoc/CONTAINER_NAME
+        prefix: SSM_
+
+    - name: Output SSM Parameters
+      id: ssm-params
+      run: |
+        echo "::set-output name=ecs-cluster::${{ env.SSM_ECS_CLUSTER }}"
+        echo "::set-output name=container-name::${{ env.SSM_CONTAINER_NAME }}"
+
   deploy:
     name: Deploy to ECS
     runs-on: ubuntu-latest
+    needs: prepare_ssm_params
+
+    outputs:
+      second_service: ${{ steps.second-service-check.outputs.second_service }}
 
     steps: 
     - name: Checkout Task Definition Repository
@@ -42,7 +84,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v1
       with:
         audience: sandbox
-        role-to-assume: ${{ secrets.role-to-assume}}
+        role-to-assume: ${{ secrets.role-to-assume }}
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
     
@@ -63,7 +105,7 @@ jobs:
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
         task-definition: task-definitions/task-definition.json
-        container-name: ${{ env.SSM_VAR_CONTAINER_NAME }}
+        container-name: ${{ needs.prepare_ssm_params.outputs.container-name }}
 
         image: ${{ inputs.image }}
 
@@ -73,5 +115,56 @@ jobs:
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}
         service: ${{ secrets.ecs-service }}
-        cluster: ${{ env.SSM_VAR_ECS_CLUSTER }}
+        cluster: ${{ needs.prepare_ssm_params.outputs.ecs-cluster }}
         wait-for-service-stability: true
+    
+    - name: Check for second service
+      id: second-service-check
+      run: |
+        if [[ "${{ secrets.ecs-service-two }}" != "" ]]
+        then
+          echo "::set-output name=second_service::true"
+        else
+          echo "::set-output name=second_service::false"
+        fi
+    
+  #Note: second service (we could abstract this some more, but i wont for the moment)
+  deploy_two:
+    name: Deploy second ECS service
+    runs-on: ubuntu-latest
+    needs: [prepare_ssm_params, deploy]
+
+    if: needs.deploy.outputs.second_service == 'true'
+    steps: 
+    - name: Checkout Task Definition Repository
+      uses: actions/checkout@v3
+      with:
+        repository: galileo-inc/cicd-poc-task-definitions
+        token: ${{ secrets.github-clone-pat }}
+        ref: v0
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        audience: sandbox
+        role-to-assume: ${{ secrets.role-to-assume }}
+        aws-region: ${{ env.AWS_REGION }}
+        mask-aws-account-id: no
+  
+    - name: Fill in the new image ID in the Amazon ECS task definition
+      id: render-task-def-two
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definitions/task-definition-two.json
+        container-name: ${{ needs.prepare_ssm_params.outputs.container-name }}
+        image: ${{ inputs.image }}
+
+    - name: Deploy Amazon ECS task definition
+      id: deploy-task-def-two
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-task-def-two.outputs.task-definition }}
+        service: ${{ secrets.ecs-service-two }}
+        cluster: ${{ needs.prepare_ssm_params.outputs.ecs-cluster }}
+        wait-for-service-stability: true
+    
