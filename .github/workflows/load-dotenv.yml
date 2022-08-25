@@ -1,0 +1,14 @@
+name: Reusable workflow to read .env 
+on: workflow_call
+
+jobs:
+  load_dotenv:
+    name: Load Dotenv
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Dotenv Action
+      uses: falti/dotenv-action@v0.2.8
