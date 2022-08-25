@@ -9,7 +9,7 @@ on:
   
     outputs:
       job_outputs:
-        value: ${{ jobs.load_dotenv.outputs.step_output }}
+        value: ${{ jobs.load_dotenv.outputs.step_outputs }}
 
 
 jobs:
@@ -18,8 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      step_output: 
-        value: ${{ steps.dotenv.outputs }}
+      step_outputs: ${{ steps.dotenv.outputs.result }}
 
     steps:
     - name: Checkout
