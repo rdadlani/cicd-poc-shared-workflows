@@ -12,6 +12,9 @@ jobs:
     name: Load Dotenv
     runs-on: ubuntu-latest
 
+    outputs:
+      env: ${{ steps.import-env.outputs.result }}
+
     steps:
     - name: Checkout
       uses: actions/checkout@v3
