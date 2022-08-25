@@ -20,6 +20,7 @@ jobs:
       uses: cardinalby/export-env-action@v2
       with:
         envFile: ${{ inputs.file }}
+        export: false
         expandWithJobEnv: true
 
 
