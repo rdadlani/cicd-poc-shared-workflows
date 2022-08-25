@@ -33,7 +33,7 @@ permissions:
 
 jobs:
   prepare_ssm_params:
-    name: Prepare environment variables and outputs
+    name: Prepare SSM parameters and outputs
     runs-on: ubuntu-latest
 
     outputs: 
