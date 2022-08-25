@@ -6,11 +6,19 @@ on:
         description: "dotenv file to be used"
         required: true 
         type: string
+  
+    outputs:
+      outputs:
+        value: ${{ jobs.load_dotenv.outputs }}
+
 
 jobs:
   load_dotenv:
     name: Load Dotenv
     runs-on: ubuntu-latest
+
+    outputs:
+      outputs: ${{ steps.dotenv.outputs }}
 
     steps:
     - name: Checkout
