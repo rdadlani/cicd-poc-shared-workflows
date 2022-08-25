@@ -1,5 +1,10 @@
 name: Reusable workflow to read .env 
-on: workflow_call
+on: 
+  workflow_call:
+    inputs:
+      path-to-file:
+        required: true
+        type: string
 
 jobs:
   load_dotenv:
@@ -9,3 +14,5 @@ jobs:
     steps:
     - name: Dotenv Action
       uses: falti/dotenv-action@v0.2.8
+      with: 
+        path: ${{ inputs.path-to-file }}
