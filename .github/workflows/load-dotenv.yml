@@ -1,0 +1,41 @@
+name: Reusable workflow to read .env 
+on: 
+  workflow_call:
+    inputs:
+      file: 
+        description: "dotenv file to be used"
+        required: true 
+        type: string
+  
+    outputs:
+      aws_region:
+        value: ${{ jobs.load_dotenv.outputs.aws_region }}
+      ecs_service:
+        value: ${{ jobs.load_dotenv.outputs.ecs_service }}
+      ecs_service2:
+        value: ${{ jobs.load_dotenv.outputs.ecs_service2 }}
+      role_to_assume:
+        value: ${{ jobs.load_dotenv.outputs.role_to_assume }}
+
+jobs:
+  load_dotenv:
+    name: Load Dotenv
+    runs-on: ubuntu-latest
+
+    outputs:
+      aws_region: ${{ steps.dotenv.outputs.aws_region }}
+      ecs_service: ${{ steps.dotenv.outputs.ecs_service }}
+      ecs_service2: ${{ steps.dotenv.outputs.ecs_service2 }}
+      role_to_assume: ${{ steps.dotenv.outputs.role_to_assume }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Dotenv Action
+      id: dotenv
+      uses: falti/dotenv-action@v0.2.8
+      with:
+        path: ${{ inputs.file }}
+        log-variables: true
+

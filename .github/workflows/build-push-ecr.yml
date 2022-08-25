@@ -1,11 +1,11 @@
 name: Reusable workflow to build and push images to ECR
 on:
   workflow_call:
-    secrets:
+    inputs:
       role-to-assume: 
         description: "Role to assume for GitHub OICD"
         required: true
-    inputs:
+        type: string
       #Note: this is for an out of band staging deploy
       git-sha:
         description: "Optional GitHub SHA for an out of band staging deploy passed in by the workflow runner"
@@ -53,7 +53,7 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        role-to-assume: ${{ secrets.role-to-assume }}
+        role-to-assume: ${{ inputs.role-to-assume }}
         audience: sandbox
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
