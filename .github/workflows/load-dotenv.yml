@@ -24,9 +24,8 @@ jobs:
       uses: actions/github-script@v2
       with:
         script: |
-          const file = ${{ inputs.file }}
+          const file = ".env.production"
           const env = parseEnv(`${process.env.GITHUB_WORKSPACE}/file`);
           Object.entries(env).forEach(x => core.exportVariable(...x)); // current job-level env
           return env;
-
 
