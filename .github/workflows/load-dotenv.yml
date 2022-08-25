@@ -8,8 +8,8 @@ on:
         type: string
   
     outputs:
-      job_outputs:
-        value: ${{ jobs.load_dotenv.outputs.step_outputs }}
+      aws_region:
+        value: ${{ jobs.load_dotenv.outputs.aws_region }}
 
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      step_outputs: ${{ steps.dotenv.outputs.result }}
+      aws_region: ${{ steps.dotenv.outputs.aws_region }}
 
     steps:
     - name: Checkout
