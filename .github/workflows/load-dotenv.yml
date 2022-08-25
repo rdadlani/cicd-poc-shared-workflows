@@ -8,8 +8,8 @@ on:
         type: string
   
     outputs:
-      outputs:
-        value: ${{ jobs.load_dotenv.outputs }}
+      job_output:
+        value: ${{ jobs.load_dotenv.step_output }}
 
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
-      outputs: ${{ steps.dotenv.outputs }}
+      step_output: ${{ steps.dotenv.outputs }}
 
     steps:
     - name: Checkout
