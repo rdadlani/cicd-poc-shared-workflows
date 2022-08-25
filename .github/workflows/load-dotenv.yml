@@ -8,7 +8,7 @@ on:
         type: string
 
 jobs:
-  load_dotenv:
+  env:
     name: Load Dotenv
     runs-on: ubuntu-latest
 
