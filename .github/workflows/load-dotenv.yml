@@ -8,24 +8,18 @@ on:
         type: string
 
 jobs:
-  env:
+  load_dotenv:
     name: Load Dotenv
     runs-on: ubuntu-latest
-
-    outputs:
-      env: ${{ steps.import-env.outputs.result }}
 
     steps:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Import environment variables from a file
-      id: import-env
-      uses: actions/github-script@v2
+    - name: Dotenv Action
+      id: dotenv
+      uses: falti/dotenv-action@v0.2.8
       with:
-        script: |
-          const file = ".env.production"
-          const env = parseEnv(`${process.env.GITHUB_WORKSPACE}/file`);
-          Object.entries(env).forEach(x => core.exportVariable(...x)); // current job-level env
-          return env;
+        path: ${{ inputs.file }}
+        log-variables: true
 
