@@ -1,6 +1,5 @@
 name: Reusable workflow to read .env 
-on: 
-  workflow_call:
+on: workflow_call
 
 jobs:
   load_dotenv:
