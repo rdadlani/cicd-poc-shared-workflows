@@ -7,16 +7,19 @@ on:
         description: "Full URI of the image currently residing in ECR"
         required: true
         type: string
-    secrets:
       role-to-assume: 
         description: "Role to assume for GitHub OICD"
         required: true
+        type: string
       ecs-service: 
         description: "Name of the ECS Service"
         required: true
+        type: string
       ecs-service-two: 
-        description: "Name of the ECS Service"
+        description: "Name of another ECS Service"
         required: false
+        type: string
+    secrets:
       github-clone-pat:
         description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
         required: true
@@ -41,7 +44,7 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        role-to-assume: ${{ secrets.role-to-assume }} 
+        role-to-assume: ${{ inputs.role-to-assume }} 
         audience: sandbox
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
@@ -84,7 +87,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v1
       with:
         audience: sandbox
-        role-to-assume: ${{ secrets.role-to-assume }}
+        role-to-assume: ${{ inputs.role-to-assume }}
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
     
@@ -114,14 +117,14 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.render-task-def.outputs.task-definition }}
-        service: ${{ secrets.ecs-service }}
+        service: ${{ inputs.ecs-service }}
         cluster: ${{ needs.prepare_ssm_params.outputs.ecs-cluster }}
         wait-for-service-stability: true
     
     - name: Check for second service
       id: second-service-check
       run: |
-        if [[ "${{ secrets.ecs-service-two }}" != "" ]]
+        if [[ "${{ inputs.ecs-service-two }}" != "" ]]
         then
           echo "::set-output name=second_service::true"
         else
@@ -147,7 +150,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v1
       with:
         audience: sandbox
-        role-to-assume: ${{ secrets.role-to-assume }}
+        role-to-assume: ${{ inputs.role-to-assume }}
         aws-region: ${{ env.AWS_REGION }}
         mask-aws-account-id: no
   
@@ -164,7 +167,7 @@ jobs:
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.render-task-def-two.outputs.task-definition }}
-        service: ${{ secrets.ecs-service-two }}
+        service: ${{ inputs.ecs-service-two }}
         cluster: ${{ needs.prepare_ssm_params.outputs.ecs-cluster }}
         wait-for-service-stability: true
     
