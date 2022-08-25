@@ -10,7 +10,12 @@ on:
     outputs:
       aws_region:
         value: ${{ jobs.load_dotenv.outputs.aws_region }}
-
+      ecs_service:
+        value: ${{ jobs.load_dotenv.outputs.ecs_service }}
+      ecs_service2:
+        value: ${{ jobs.load_dotenv.outputs.ecs_service2 }}
+      role_to_assume:
+        value: ${{ jobs.load_dotenv.outputs.role_to_assume }}
 
 jobs:
   load_dotenv:
@@ -19,6 +24,9 @@ jobs:
 
     outputs:
       aws_region: ${{ steps.dotenv.outputs.aws_region }}
+      ecs_service: ${{ steps.dotenv.outputs.ecs_service }}
+      ecs_service2: ${{ steps.dotenv.outputs.ecs_service2 }}
+      role_to_assume: ${{ steps.dotenv.outputs.role_to_assume }}
 
     steps:
     - name: Checkout
