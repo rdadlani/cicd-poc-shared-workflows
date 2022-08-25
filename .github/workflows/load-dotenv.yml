@@ -8,8 +8,8 @@ on:
         type: string
   
     outputs:
-      job_output:
-        value: ${{ jobs.load_dotenv.step_output }}
+      job_outputs:
+        value: ${{ jobs.load_dotenv.outputs.step_output }}
 
 
 jobs:
