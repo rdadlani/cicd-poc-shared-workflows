@@ -16,6 +16,8 @@ on:
         value: ${{ jobs.load_dotenv.outputs.ecs_service2 }}
       role_to_assume:
         value: ${{ jobs.load_dotenv.outputs.role_to_assume }}
+      aws_environment:
+        value: ${{ jobs.load_dotenv.outputs.aws_environment }}
 
 jobs:
   load_dotenv:
@@ -27,6 +29,7 @@ jobs:
       ecs_service: ${{ steps.dotenv.outputs.ecs_service }}
       ecs_service2: ${{ steps.dotenv.outputs.ecs_service2 }}
       role_to_assume: ${{ steps.dotenv.outputs.role_to_assume }}
+      aws_environment: ${{ steps.dotenv.outputs.aws_environment }}
 
     steps:
     - name: Checkout
