@@ -3,14 +3,6 @@ name: Reusable workflow to deploy image to ECS
 on:
   workflow_call:
     inputs:
-      token:
-        description: "GitHub PAT"
-        required: true
-        type: string
-      git-sha: 
-        description: "Name of the ECS Service"
-        required: true
-        type: string
       aws-environment: 
         description: "Name of the environment"
         required: true
@@ -22,7 +14,24 @@ on:
         require: true
         type: string
     secrets:
-      github-clone-pat:
-        description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
+      github-pat:
+        description: "GitHub PAT"
         required: true
 
+permissions:
+  deployments: write
+
+jobs:
+  update_deployment:
+    name: Update github deployment
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Update deployment status
+        uses: chrnorm/deployment-status@v2
+        with:
+          token: ${{ secrets.github-pat }}
+          environment: ${{ inputs.aws-environment }}
+          deployment-id: ${{ inputs.deployment-id }}
+          state: ${{ inputs.state }}

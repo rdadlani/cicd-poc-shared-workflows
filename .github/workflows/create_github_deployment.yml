@@ -28,7 +28,6 @@ permissions:
 jobs:
   create_deployment:
     name: Create github deployment
-    needs: [load_dotenv]
 
     runs-on: ubuntu-latest
 
@@ -40,6 +39,6 @@ jobs:
         uses: chrnorm/deployment-action@v2
         id: deployment
         with:
-          token: ${{ secrets.CICD_POC_PAT }}
-          environment: ${{ needs.load_dotenv.outputs.aws_environment }}
+          token: ${{ secrets.github-pat }}
+          environment: ${{ inputs.aws-environment }}
           ref: ${{ inputs.image-tag }}
