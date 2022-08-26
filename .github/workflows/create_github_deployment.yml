@@ -1,0 +1,45 @@
+name: Reusable workflow to deploy image to ECS
+
+on:
+  workflow_call:
+    inputs: 
+      git-sha: 
+        description: "Name of the ECS Service"
+        required: true
+        type: string
+      aws-environment: 
+        description: "Name of the environment"
+        required: true
+        type: string
+        
+    secrets:
+      github-pat:
+        description: "GitHub Personal access token"
+        required: true
+
+    outputs:
+      deployment_id:
+        description: "The ID of the Github Environments deployment"
+        value: ${{ jobs.create_deployment.outputs.deployment_id }}
+
+permissions:
+  deployments: write
+
+jobs:
+  create_deployment:
+    name: Create github deployment
+    needs: [load_dotenv]
+
+    runs-on: ubuntu-latest
+
+    outputs: 
+      deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+
+    steps:
+      - name: Create GitHub deployment
+        uses: chrnorm/deployment-action@v2
+        id: deployment
+        with:
+          token: ${{ secrets.CICD_POC_PAT }}
+          environment: ${{ needs.load_dotenv.outputs.aws_environment }}
+          ref: ${{ inputs.image-tag }}

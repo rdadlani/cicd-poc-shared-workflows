@@ -1,0 +1,28 @@
+name: Reusable workflow to deploy image to ECS
+
+on:
+  workflow_call:
+    inputs:
+      token:
+        description: "GitHub PAT"
+        required: true
+        type: string
+      git-sha: 
+        description: "Name of the ECS Service"
+        required: true
+        type: string
+      aws-environment: 
+        description: "Name of the environment"
+        required: true
+        type: string
+      deployment-id:
+        description: "The ID of the Github Environments deployment"
+      state: 
+        description: "The state of the deployment to ECS"
+        require: true
+        type: string
+    secrets:
+      github-clone-pat:
+        description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
+        required: true
+
