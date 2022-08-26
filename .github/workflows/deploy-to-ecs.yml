@@ -19,6 +19,10 @@ on:
         description: "Name of another ECS Service"
         required: false
         type: string
+      aws-environment: 
+        description: "Name of the environment"
+        required: true
+        type: string
     secrets:
       github-clone-pat:
         description: "GitHub PAT secret for cloning the repository in which the Task Definitions reside"
@@ -35,6 +39,8 @@ jobs:
   prepare_ssm_params:
     name: Prepare SSM parameters and outputs
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.aws-environment }}
 
     outputs: 
       ecs-cluster: ${{ steps.ssm-params.outputs.ecs-cluster }}
@@ -70,6 +76,8 @@ jobs:
   deploy:
     name: Deploy to ECS
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.aws-environment }}
     needs: prepare_ssm_params
 
     outputs:
@@ -135,6 +143,8 @@ jobs:
   deploy_two:
     name: Deploy second ECS service
     runs-on: ubuntu-latest
+    environment: 
+      name: ${{ inputs.aws-environment }}
     needs: [prepare_ssm_params, deploy]
 
     if: needs.deploy.outputs.second_service == 'true'
