@@ -11,10 +11,6 @@ on:
         description: "The ID of the Github Environments deployment"
         required: true
         type: string
-      state: 
-        description: "The state of the deployment to ECS"
-        required: true
-        type: string
     secrets:
       github-pat:
         description: "GitHub PAT"
@@ -32,7 +28,7 @@ jobs:
     steps:
       - name: Update deployment status - success
         uses: chrnorm/deployment-status@v2
-        if: ${{ inputs.state == 'finished' }}
+        if: success()
         with:
           token: ${{ secrets.github-pat }}
           environment: ${{ inputs.aws-environment }}
@@ -40,7 +36,7 @@ jobs:
           state: 'success'
       - name: Update deployment status - failure
         uses: chrnorm/deployment-status@v2
-        if: ${{ inputs.state == '' }}
+        if: failure()
         with:
           token: ${{ secrets.github-pat }}
           environment: ${{ inputs.aws-environment }}
