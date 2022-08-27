@@ -11,7 +11,7 @@ on:
         description: "The ID of the Github Environments deployment"
       state: 
         description: "The state of the deployment to ECS"
-        require: true
+        required: true
         type: string
     secrets:
       github-pat:
