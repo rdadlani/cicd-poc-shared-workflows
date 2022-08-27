@@ -30,10 +30,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Update deployment status
+      - name: Update deployment status - success
         uses: chrnorm/deployment-status@v2
+        if: ${{ state == 'finished' }}
         with:
           token: ${{ secrets.github-pat }}
           environment: ${{ inputs.aws-environment }}
           deployment-id: ${{ inputs.deployment-id }}
-          state: ${{ inputs.state }}
+          state: 'success'
+      - name: Update deployment status - failure
+        uses: chrnorm/deployment-status@v2
+        if: ${{ state == '' }}
+        with:
+          token: ${{ secrets.github-pat }}
+          environment: ${{ inputs.aws-environment }}
+          deployment-id: ${{ inputs.deployment-id }}
+          state: 'failure'
