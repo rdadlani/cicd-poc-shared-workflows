@@ -9,6 +9,8 @@ on:
         type: string
       deployment-id:
         description: "The ID of the Github Environments deployment"
+        required: true
+        type: string
       state: 
         description: "The state of the deployment to ECS"
         required: true
