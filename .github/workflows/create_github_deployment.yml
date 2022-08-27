@@ -41,4 +41,4 @@ jobs:
         with:
           token: ${{ secrets.github-pat }}
           environment: ${{ inputs.aws-environment }}
-          ref: ${{ inputs.image-tag }}
+          ref: ${{ inputs.git-sha }}
