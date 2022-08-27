@@ -32,7 +32,7 @@ jobs:
     steps:
       - name: Update deployment status - success
         uses: chrnorm/deployment-status@v2
-        if: ${{ state == 'finished' }}
+        if: ${{ inputs.state == 'finished' }}
         with:
           token: ${{ secrets.github-pat }}
           environment: ${{ inputs.aws-environment }}
@@ -40,7 +40,7 @@ jobs:
           state: 'success'
       - name: Update deployment status - failure
         uses: chrnorm/deployment-status@v2
-        if: ${{ state == '' }}
+        if: ${{ inputs.state == '' }}
         with:
           token: ${{ secrets.github-pat }}
           environment: ${{ inputs.aws-environment }}
