@@ -1,4 +1,4 @@
-name: Reusable workflow to deploy image to ECS
+name: Reusable workflow to create a GitHub deployment
 
 on:
   workflow_call:
