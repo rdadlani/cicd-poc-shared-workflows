@@ -1,0 +1,56 @@
+name: Nested reusable workflow for on merge to mainline branch
+
+on:
+  workflow_call:
+    inputs:
+      file: 
+        description: "Dotenv file to use"
+        required: true
+        type: string
+    secrets:
+      github-pat:
+        description: "GitHub PAT"
+        required: true
+      slack-bot-token: 
+        description: "Slack Bot Token"
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+  deployments: write
+
+jobs:
+  load_dotenv:
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
+    with:
+      file: ${{ inputs.file }}
+
+  test:
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/test.yml@main
+
+  build:
+    needs: [load_dotenv, test]
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/build-push-ecr.yml@main
+    with:
+      role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
+
+  deploy:
+    needs: [load_dotenv, build]
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/deploy-to-ecs.yml@main
+    with: 
+      image: ${{ needs.build.outputs.image }}
+      ecs-service: ${{ needs.load_dotenv.outputs.ecs_service }}
+      ecs-service-two: ${{ needs.load_dotenv.outputs.ecs_service2 }} #optional
+      # Note: the only difference between staging and production as far as the reusable 
+      #       workflows are concerned is the role to assume - all other steps infer the account based on the role
+      role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
+      aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
+    secrets: 
+      github-pat: ${{ secrets.github-pat }}
+
+  slack_notifyer:
+    needs: deploy
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/notify-slack.yml@main
+    secrets:
+      slack-bot-token: ${{ secrets.slack-bot-token }}

@@ -1,0 +1,76 @@
+name: Nested reusable workflow for AdHoc Production Rollback that acts as a wrapper around helper workflows
+
+on:
+  workflow_call:
+    inputs:
+      file: 
+        description: "Dotenv file to use"
+        required: true
+        type: string
+    secrets:
+      github-pat:
+        description: "GitHub PAT"
+        required: true
+      slack-bot-token: 
+        description: "Slack Bot Token"
+        required: true
+
+permissions:
+  contents: read
+  id-token: write
+  deployments: write
+
+jobs:
+  load_dotenv:
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
+    with:
+      file: ${{ inputs.file }}
+  
+  create_deployment:
+    name: Create github deployment
+    needs: load_dotenv
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/create_github_deployment.yml@main
+    with:
+      aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
+      git-sha: ${{ inputs.image-tag }}
+    secrets:
+      github-pat: ${{ secrets.github-pat }}
+
+  build_uri:
+    name: Build image URI for the container image to be used 
+    needs: load_dotenv
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/build_image_uri.yml@main
+    with: #TODO: why are we passing region in to places? we could just hard code those in the reusable workflows
+      role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
+      aws-region: ${{ needs.load_dotenv.outputs.aws_region }}
+
+  deploy:
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/deploy-to-ecs.yml@main
+    needs: [load_dotenv, build_uri]
+    with: 
+      image: ${{ needs.build_uri.outputs.image }}
+      ecs-service: ${{ needs.load_dotenv.outputs.ecs_service }}
+      ecs-service-two: ${{ needs.load_dotenv.outputs.ecs_service2 }} #optional
+      # Note: the only difference between staging and production as far as the reusable 
+      #       workflows are concerned is the role to assume - all other steps infer the account based on the role
+      role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
+      aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
+    secrets:  
+      github-pat: ${{ secrets.github-pat }}
+  
+  update_deployment:
+    name: Update github deployment
+    needs: [load_dotenv, create_deployment, deploy]
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/update_github_deployment.yml@main
+    with:
+      aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
+      deployment-id: ${{ needs.create_deployment.outputs.deployment_id }}
+    secrets:
+      github-pat: ${{ secrets.github-pat }}
+  
+
+  slack_notifyer:
+    needs: deploy
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/notify-slack.yml@main
+    secrets:
+      slack-bot-token: ${{ secrets.slack-bot-token }}
