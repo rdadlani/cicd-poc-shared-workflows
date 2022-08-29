@@ -22,22 +22,22 @@ permissions:
 
 jobs:
   load_dotenv:
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_load_dotenv.yml@main
     with:
       file: ${{ inputs.file }}
 
   test:
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/test.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_test.yml@main
 
   build:
     needs: [load_dotenv, test]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/build-push-ecr.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_build_push_ecr.yml@main
     with:
       role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
 
   deploy:
     needs: [load_dotenv, build]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/deploy-to-ecs.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_deploy_to_ecs.yml@main
     with: 
       image: ${{ needs.build.outputs.image }}
       ecs-service: ${{ needs.load_dotenv.outputs.ecs_service }}
@@ -51,6 +51,6 @@ jobs:
 
   slack_notifyer:
     needs: deploy
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/notify-slack.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_notify_slack.yml@main
     secrets:
       slack-bot-token: ${{ secrets.slack-bot-token }}
