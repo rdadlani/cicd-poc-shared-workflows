@@ -29,7 +29,7 @@ jobs:
   load_dotenv:
     uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
     with:
-      file: .env.actions.staging
+      file: ${{ inuputs.file }}
   
   create_deployment:
     name: Create github deployment
