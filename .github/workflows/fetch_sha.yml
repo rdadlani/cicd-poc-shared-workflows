@@ -1,0 +1,36 @@
+name: Reusable workflow to fetch a sha once a comment is placed on a PR
+
+on:
+  workflow_call:
+    outputs:
+      git-sha: 
+        description: "The result of the fetch sha operation"
+        value: ${{ jobs.fetch_sha.outputs.git-sha }}
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  fetch_sha:
+    name: Fetch SHA of most recent commit on current branch
+    runs-on: ubuntu-latest
+    outputs:
+      git-sha: ${{ steps.fetch-sha.outputs.result }}
+
+    if: ${{ github.event.issue.pull_request && github.event.comment.body == '/staging'}}
+    steps:
+    - name: Fetch SHA for staging deployment
+      id: fetch-sha
+      uses: actions/github-script@v6
+      with:
+        result-encoding: string
+        script: |
+          const { owner, repo, number } = context.issue;
+          const pr = await github.rest.pulls.get({
+            owner,
+            repo,
+            pull_number: number,
+          });
+          return pr.data.head.sha
