@@ -1,10 +1,10 @@
-name: Reusable workflow to deploy image to ECS
+name: Reusable workflow to create a GitHub deployment
 
 on:
   workflow_call:
     inputs: 
       git-sha: 
-        description: "Name of the ECS Service"
+        description: "SHA of the commit to create a deployment for"
         required: true
         type: string
       aws-environment: 

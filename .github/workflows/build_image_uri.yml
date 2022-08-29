@@ -1,0 +1,53 @@
+name: Reusable workflow to concatenate the Image URI to be used for rollback
+
+on:
+  workflow_call:
+    inputs:
+      role-to-assume:
+        description: "IAM role to assume"
+        required: true
+        type: string
+      aws-region:
+        description: "The AWS region"
+        required: true
+        type: string
+    outputs:
+      image: 
+        description: "The URI for the image in ECR"
+        value: ${{ jobs.build_uri.outputs.image }}
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build_uri:
+    name: Build image URI for the container image to be used 
+    runs-on: ubuntu-latest
+    outputs: 
+      image: ${{ steps.build-uri.outputs.image }}
+    steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ inputs.role-to-assume }}
+        audience: sandbox
+        aws-region: ${{ inputs.aws-region }}
+        mask-aws-account-id: no
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    
+    - name: Get Repository Name
+      run: echo "REPOSITORY=${GITHUB_REPOSITORY#*/}" >> $GITHUB_ENV
+    
+    - name: Build Image URI
+      id: build-uri
+      run: |
+        echo "::set-output name=image::${{ steps.login-ecr.outputs.registry }}/${REPOSITORY}:${{ inputs.image-tag }}"
+    
+    - name: Check Image exists
+      run: |
+        aws ecr describe-images --repository-name=${REPOSITORY} --image-ids=imageTag=${{ inputs.image-tag }}
+        exit $?
