@@ -24,7 +24,7 @@ jobs:
   load_dotenv:
     uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
     with:
-      file: .env.actions.production
+      file: ${{ inputs.file }}
 
   test:
     uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/test.yml@main
