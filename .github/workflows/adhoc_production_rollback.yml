@@ -22,14 +22,14 @@ permissions:
 
 jobs:
   load_dotenv:
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_load_dotenv.yml@main
     with:
       file: ${{ inputs.file }}
   
   create_deployment:
     name: Create github deployment
     needs: load_dotenv
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/create_github_deployment.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_create_github_deployment.yml@main
     with:
       aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
       git-sha: ${{ inputs.image-tag }}
@@ -39,13 +39,13 @@ jobs:
   build_uri:
     name: Build image URI for the container image to be used 
     needs: load_dotenv
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/build_image_uri.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_build_image_uri.yml@main
     with: #TODO: why are we passing region in to places? we could just hard code those in the reusable workflows
       role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
       aws-region: ${{ needs.load_dotenv.outputs.aws_region }}
 
   deploy:
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/deploy-to-ecs.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_deploy_to_ecs.yml@main
     needs: [load_dotenv, build_uri]
     with: 
       image: ${{ needs.build_uri.outputs.image }}
@@ -61,7 +61,7 @@ jobs:
   update_deployment:
     name: Update github deployment
     needs: [load_dotenv, create_deployment, deploy]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/update_github_deployment.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_update_github_deployment.yml@main
     with:
       aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
       deployment-id: ${{ needs.create_deployment.outputs.deployment_id }}
@@ -71,6 +71,6 @@ jobs:
 
   slack_notifyer:
     needs: deploy
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/notify-slack.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_notify_slack.yml@main
     secrets:
       slack-bot-token: ${{ secrets.slack-bot-token }}

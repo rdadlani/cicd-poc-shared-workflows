@@ -24,17 +24,17 @@ permissions:
 jobs:
   fetch_sha:
     name: Fetch SHA of most recent commit on current branch
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/fetch_sha.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_fetch_sha.yml@main
   
   load_dotenv:
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/load-dotenv.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_load_dotenv.yml@main
     with:
       file: ${{ inuputs.file }}
   
   create_deployment:
     name: Create github deployment
     needs: [fetch_sha, load_dotenv]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/create_github_deployment.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_create_github_deployment.yml@main
     with:
       aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
       git-sha: ${{ needs.fetch_sha.outputs.git-sha }}
@@ -43,14 +43,14 @@ jobs:
 
   build:
     needs: [fetch_sha, load_dotenv]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/build-push-ecr.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_build_push_ecr.yml@main
     with:
       git-sha: ${{ needs.fetch_sha.outputs.git-sha }}
       role-to-assume: ${{ needs.load_dotenv.outputs.role_to_assume }}
 
   deploy:
     needs: [build, load_dotenv]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/deploy-to-ecs.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_deploy_to_ecs.yml@main
     with: 
       image: ${{ needs.build.outputs.image }}
       ecs-service: ${{ needs.load_dotenv.outputs.ecs_service }}
@@ -65,7 +65,7 @@ jobs:
   update_deployment:
     name: Update github deployment
     needs: [fetch_sha, load_dotenv, create_deployment, deploy]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/update_github_deployment.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_update_github_deployment.yml@main
     with:
       aws-environment: ${{ needs.load_dotenv.outputs.aws_environment }}
       deployment-id: ${{ needs.create_deployment.outputs.deployment_id }}
@@ -74,13 +74,13 @@ jobs:
   
   slack_notifyer:
     needs: deploy
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/notify-slack.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_notify_slack.yml@main
     secrets:
       slack-bot-token: ${{ secrets.slack-bot-token }}
 #TODO: make output variable names consistent. lots of - vs _ driving me crazy
 #TODO: make file naming scheme consistent. right now we have some with - and others with _ and it's driving me crazy
   pull_request_notifyer:
     needs: [deploy, fetch_sha]
-    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/pull_request_notifyer.yml@main
+    uses: rdadlani/cicd-poc-shared-workflows/.github/workflows/helper_pull_request_notifyer.yml@main
     with: 
       git-sha: ${{ needs.fetch_sha.outputs.git-sha }}
