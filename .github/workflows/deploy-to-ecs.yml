@@ -140,6 +140,7 @@ jobs:
         fi
     
   #Note: second service (we could abstract this some more, but i wont for the moment)
+  # this should be a custom action that is smart enough to parse out requirements driven from a file
   deploy_two:
     name: Deploy second ECS service
     runs-on: ubuntu-latest
