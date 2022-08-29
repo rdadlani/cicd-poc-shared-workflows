@@ -1,0 +1,45 @@
+name: Reusable workflow to add comments to PRs 
+
+on:
+  workflow_call:
+    inputs:
+      git-sha: 
+        description: "SHA of the commit to notify the PR about"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  pull_request_notifyer: 
+    name: Notify with Pull Request commentß
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Success notification
+      id: notification-success
+      if: success()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '✅ Deployed ${{ inputs.git-sha }} to staging!',
+          })
+    - name: Failure notification
+      id: notification-failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '❌ Error deploying ${{ inputs.git-sha }} to staging!',
+          })
